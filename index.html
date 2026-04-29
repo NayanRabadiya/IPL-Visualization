@@ -721,9 +721,7 @@ function getPhase(over) {
 // ══════════════════════════════════════════════════
 async function loadData() {
   const prog = document.getElementById('load-progress');
-  prog.textContent = 'Fetching IPL.csv...';
-  try {
-    _ALL_DATA = await d3.csv('./IPL.csv', d => ({
+  const parseRow = d => ({
       match_id: d.match_id,
       date: d.date,
       year: +d.year,
@@ -745,7 +743,6 @@ async function loadData() {
       bowler_wicket: d.bowler_wicket === '1',
       runs_extras: +d.runs_extras || 0,
       runs_total: +d.runs_total || 0,
-      // CSV stores Python booleans as 'True'/'False'
       runs_not_boundary: d.runs_not_boundary === 'True' || d.runs_not_boundary === 'TRUE' || d.runs_not_boundary === '1',
       extra_type: d.extra_type || '',
       wicket_kind: d.wicket_kind || '',
@@ -768,9 +765,30 @@ async function loadData() {
       result_type: d.result_type || '',
       method: d.method || '',
       superover_winner: d.superover_winner || '',
-    }));
+  });
+  try {
+    prog.textContent = 'Fetching data...';
+    const response = await fetch('./IPL.csv.gz');
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    prog.textContent = 'Decompressing...';
+    const ds = new DecompressionStream('gzip');
+    const decompressed = response.body.pipeThrough(ds);
+    const reader = decompressed.getReader();
+    const chunks = [];
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+    const total = chunks.reduce((n, c) => n + c.length, 0);
+    const merged = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) { merged.set(chunk, offset); offset += chunk.length; }
+    prog.textContent = 'Parsing...';
+    const csvText = new TextDecoder().decode(merged);
+    _ALL_DATA = d3.csvParse(csvText, parseRow);
   } catch(e) {
-    prog.textContent = 'Error: Could not load IPL.csv. Make sure it is in the same folder.';
+    prog.textContent = 'Error: Could not load IPL.csv.gz.';
     console.error(e);
     return;
   }
