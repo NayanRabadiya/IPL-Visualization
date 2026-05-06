@@ -60,7 +60,7 @@ h1,h2,h3,h4 { font-family: 'DM Serif Display', serif; color: var(--navy); }
   background: #0f172a;
   padding: 0 32px;
   height: 60px;
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: center;
   position: sticky; top:0; z-index:1000;
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
@@ -96,7 +96,7 @@ h1,h2,h3,h4 { font-family: 'DM Serif Display', serif; color: var(--navy); }
 .tab-nav::-webkit-scrollbar { display:none; }
 .tab-btn {
   padding: 7px 15px; border:none; background:transparent;
-  font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500;
+  font-family:'DM Sans',sans-serif; font-size:1.2rem; font-weight:500;
   color: rgba(255,255,255,0.45); cursor:pointer; white-space:nowrap;
   border-radius: 7px; transition: all 0.15s;
   display:flex; align-items:center; gap:6px; margin: 8px 2px;
@@ -225,7 +225,7 @@ h1,h2,h3,h4 { font-family: 'DM Serif Display', serif; color: var(--navy); }
 
 /* Chart Container */
 .chart-container { min-height:300px; position:relative; }
-.chart-container canvas, .chart-container svg { max-width:100%; }
+.chart-container canvas, .chart-container svg { max-width:100%; overflow: visible; }
 
 /* Table */
 .data-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
@@ -281,14 +281,14 @@ h1,h2,h3,h4 { font-family: 'DM Serif Display', serif; color: var(--navy); }
   padding: 0 8px 0 20px; border-left: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
 }
 .sfb-nav .sfb-label {
-  font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+  font-size: 0.85rem; font-weight: 600; text-transform: uppercase;
   letter-spacing: 0.8px; color: rgba(255,255,255,0.3); white-space: nowrap;
 }
 .sfb-nav .sfb-controls { display: flex; align-items: center; gap: 6px; }
 .sfb-nav select {
   padding: 4px 8px; border: 1px solid rgba(255,255,255,0.12);
   border-radius: 6px; background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.8); font-family: 'DM Sans'; font-size: 0.8rem;
+  color: rgba(255,255,255,0.8); font-family: 'DM Sans'; font-size: 0.95rem;
   cursor: pointer; outline: none; transition: all 0.15s;
 }
 .sfb-nav select option { background: #1e293b; color: #fff; }
@@ -299,11 +299,11 @@ h1,h2,h3,h4 { font-family: 'DM Serif Display', serif; color: var(--navy); }
 #sfb-reset {
   padding: 4px 10px; background: transparent;
   border: 1px solid rgba(255,255,255,0.12); border-radius: 6px;
-  color: rgba(255,255,255,0.4); font-family: 'DM Sans'; font-size: 0.73rem;
+  color: rgba(255,255,255,0.4); font-family: 'DM Sans'; font-size: 0.88rem;
   cursor: pointer; transition: all 0.15s; white-space: nowrap;
 }
 #sfb-reset:hover { border-color: rgba(99,102,241,0.5); color: #a5b4fc; }
-#sfb-info { color: #a5b4fc; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+#sfb-info { color: #a5b4fc; font-size: 0.92rem; font-weight: 600; white-space: nowrap; }
 @media(max-width:700px) { .sfb-nav { display: none; } }
 
 /* ── IPL Champion Cards ── */
@@ -455,7 +455,7 @@ h1,h2,h3,h4 { font-family: 'DM Serif Display', serif; color: var(--navy); }
   <!-- TAB 1: Overview -->
   <div class="tab-content active" id="tab-overview">
     <h2 class="section-title">Dashboard</h2>
-    <p class="section-subtitle">A bird's eye view of 17+ seasons of IPL cricket</p>
+    <p class="section-subtitle">A bird's eye view of 18 seasons of IPL cricket</p>
     <div class="grid-5" id="hero-stats"></div>
     <div class="grid-4" id="record-stats" style="margin-top:20px;"></div>
 
@@ -945,6 +945,8 @@ async function vegaChart(el, spec) {
     font: 'DM Sans',
     title: { font: 'DM Serif Display', fontSize: 14, color: '#1a2a4a' },
     axis: { labelFont: 'DM Sans', labelFontSize: 11, titleFont: 'DM Sans', titleFontSize: 12, gridColor: '#e8eaed', domainColor: '#ccc' },
+    axisDiscrete: { grid: false },
+    axisQuantitative: { grid: false },
     legend: { labelFont: 'DM Sans', titleFont: 'DM Sans', labelFontSize: 11 },
     view: { stroke: null },
     range: { category: ['#6366f1','#f43f5e','#f59e0b','#10b981','#004ba0','#d4213d','#3a225d','#ff822a','#ea1a85','#004c93'] }
@@ -1135,18 +1137,25 @@ function renderOverview() {
   }
   const champDomain = champData.map(c => c.team);
   const champRange  = champData.map(c => c.color);
+  const titlesMax = d3.max(champData, c => c.titles);
   vegaChart('#title-winners', {
     data: { values: champData },
-    mark: { type: 'bar', cornerRadiusTopRight: 4, cornerRadiusBottomRight: 4 },
+    layer: [
+      {
+        mark: { type: 'bar', cornerRadiusTopRight: 4, cornerRadiusBottomRight: 4 },
+        encoding: {
+          color: { field: 'team', type: 'nominal', scale: { domain: champDomain, range: champRange }, legend: null },
+          tooltip: [{ field: 'team', title: 'Team' }, { field: 'titles', title: 'Titles' }, { field: 'years', title: 'Years' }]
+        }
+      },
+      {
+        mark: { type: 'text', align: 'left', dx: 5, fontSize: 12, fontWeight: 'bold' },
+        encoding: { text: { field: 'titles', type: 'quantitative' }, color: { value: '#374151' } }
+      }
+    ],
     encoding: {
       y: { field: 'team', type: 'nominal', sort: '-x', title: '', axis: { ticks: false } },
-      x: { field: 'titles', type: 'quantitative', title: 'Titles Won', scale: { domain: [0, d3.max(champData, c => c.titles)], nice: false }, axis: { ticks: false, values: d3.range(0, d3.max(champData, c => c.titles) + 1), format: 'd' } },
-      color: { field: 'team', type: 'nominal', scale: { domain: champDomain, range: champRange }, legend: null },
-      tooltip: [
-        { field: 'team', title: 'Team' },
-        { field: 'titles', title: 'Titles' },
-        { field: 'years', title: 'Years' }
-      ]
+      x: { field: 'titles', type: 'quantitative', title: 'Titles Won', scale: { domain: [0, titlesMax + 1.5], nice: false }, axis: { ticks: false, values: d3.range(0, titlesMax + 1), format: 'd' } }
     },
     height: 260
   });
@@ -1162,11 +1171,19 @@ function renderOverview() {
   }
   vegaChart('#chart-top-batters', {
     data: { values: topBats.map(b => ({ name: b.name, runs: b.totalRuns, avg: +b.avg.toFixed(1), sr: +b.sr.toFixed(1) })) },
-    mark: { type: 'bar', cornerRadiusTopRight: 4, cornerRadiusBottomRight: 4, color: '#6366f1' },
+    layer: [
+      {
+        mark: { type: 'bar', cornerRadiusTopRight: 4, cornerRadiusBottomRight: 4, color: '#6366f1' },
+        encoding: { tooltip: [{ field: 'name', title: 'Batter' }, { field: 'runs', title: 'Runs', format: ',' }, { field: 'avg', title: 'Average' }, { field: 'sr', title: 'Strike Rate' }] }
+      },
+      {
+        mark: { type: 'text', align: 'left', dx: 5, fontSize: 11 },
+        encoding: { text: { field: 'runs', type: 'quantitative', format: ',' }, color: { value: '#374151' } }
+      }
+    ],
     encoding: {
       y: { field: 'name', type: 'nominal', sort: '-x', title: '' },
-      x: { field: 'runs', type: 'quantitative', title: 'Runs' },
-      tooltip: [{ field: 'name', title: 'Batter' }, { field: 'runs', title: 'Runs', format: ',' }, { field: 'avg', title: 'Average' }, { field: 'sr', title: 'Strike Rate' }]
+      x: { field: 'runs', type: 'quantitative', title: 'Runs', scale: { nice: true } }
     },
     height: 220
   });
@@ -1181,11 +1198,19 @@ function renderOverview() {
   }
   vegaChart('#chart-top-bowlers', {
     data: { values: topBowls.map(b => ({ name: b.name, wickets: b.wickets, economy: +b.economy.toFixed(2) })) },
-    mark: { type: 'bar', cornerRadiusTopRight: 4, cornerRadiusBottomRight: 4, color: '#f43f5e' },
+    layer: [
+      {
+        mark: { type: 'bar', cornerRadiusTopRight: 4, cornerRadiusBottomRight: 4, color: '#f43f5e' },
+        encoding: { tooltip: [{ field: 'name', title: 'Bowler' }, { field: 'wickets', title: 'Wickets' }, { field: 'economy', title: 'Economy' }] }
+      },
+      {
+        mark: { type: 'text', align: 'left', dx: 5, fontSize: 11 },
+        encoding: { text: { field: 'wickets', type: 'quantitative' }, color: { value: '#374151' } }
+      }
+    ],
     encoding: {
       y: { field: 'name', type: 'nominal', sort: '-x', title: '' },
-      x: { field: 'wickets', type: 'quantitative', title: 'Wickets' },
-      tooltip: [{ field: 'name', title: 'Bowler' }, { field: 'wickets', title: 'Wickets' }, { field: 'economy', title: 'Economy' }]
+      x: { field: 'wickets', type: 'quantitative', title: 'Wickets', scale: { nice: true } }
     },
     height: 220
   });
@@ -1214,15 +1239,31 @@ function renderBatting() {
       { text: `avg ${top10[0].avg.toFixed(1)} · SR ${top10[0].sr.toFixed(1)}` }
     ]);
   }
+  const batTop10Totals = top10.map(b => ({ name: b.name, total: b.totalRuns }));
+  const batTop10Order = top10.map(b => b.name);
   vegaChart('#chart-bat-top10', {
-    data: { values: stackedData },
-    mark: { type: 'bar', cornerRadiusEnd: 3 },
-    encoding: {
-      y: { field: 'name', type: 'nominal', sort: { field: 'runs', op: 'sum', order: 'descending' }, title: '' },
-      x: { field: 'runs', type: 'quantitative', title: 'Runs', stack: 'zero' },
-      color: { field: 'type', type: 'nominal', scale: { domain: ['Sixes','Fours','Others'], range: ['#f43f5e','#f59e0b','#6366f1'] }, title: '' },
-      tooltip: [{ field: 'name' }, { field: 'type' }, { field: 'runs', format: ',' }]
-    },
+    layer: [
+      {
+        data: { values: stackedData },
+        mark: { type: 'bar', cornerRadiusEnd: 3 },
+        encoding: {
+          y: { field: 'name', type: 'nominal', sort: batTop10Order, title: '' },
+          x: { field: 'runs', type: 'quantitative', title: 'Runs', stack: 'zero' },
+          color: { field: 'type', type: 'nominal', scale: { domain: ['Sixes','Fours','Others'], range: ['#ef4444','#f59e0b','#a5b4fc'] }, title: '' },
+          tooltip: [{ field: 'name' }, { field: 'type' }, { field: 'runs', format: ',' }]
+        }
+      },
+      {
+        data: { values: batTop10Totals },
+        mark: { type: 'text', align: 'left', dx: 5, fontSize: 11, fontWeight: 'bold' },
+        encoding: {
+          y: { field: 'name', type: 'nominal', sort: batTop10Order },
+          x: { field: 'total', type: 'quantitative' },
+          text: { field: 'total', format: ',' },
+          color: { value: '#374151' }
+        }
+      }
+    ],
     height: 320
   });
 
@@ -1268,19 +1309,31 @@ function renderBatting() {
     data: { values: mWide },
     layer: [
       {
-        mark: { type: 'bar', cornerRadiusEnd: 4, opacity: 0.5 },
+        mark: { type: 'bar', cornerRadiusEnd: 4, color: '#93c5fd' },
         encoding: {
           x: { field: 'fifties', type: 'quantitative' },
-          color: { value: '#6366f1' },
           tooltip: [{ field: 'batter', title: 'Player' }, { field: 'fiftiesOnly', title: '50s (half-centuries)' }, { field: 'hundreds', title: '100s' }]
         }
       },
       {
-        mark: { type: 'bar', cornerRadiusEnd: 4 },
+        mark: { type: 'bar', cornerRadiusEnd: 4, color: '#f59e0b' },
         encoding: {
           x: { field: 'hundreds', type: 'quantitative' },
-          color: { value: '#f43f5e' },
           tooltip: [{ field: 'batter', title: 'Player' }, { field: 'fiftiesOnly', title: '50s (half-centuries)' }, { field: 'hundreds', title: '100s' }]
+        }
+      },
+      {
+        mark: { type: 'text', align: 'left', dx: 5, fontSize: 10, color: '#b45309', fontWeight: 'bold' },
+        encoding: {
+          x: { field: 'hundreds', type: 'quantitative' },
+          text: { field: 'hundreds', type: 'quantitative' }
+        }
+      },
+      {
+        mark: { type: 'text', align: 'right', dx: -5, fontSize: 10, color: '#1d4ed8' },
+        encoding: {
+          x: { field: 'fifties', type: 'quantitative' },
+          text: { field: 'fiftiesOnly', type: 'quantitative' }
         }
       }
     ],
@@ -1489,15 +1542,30 @@ function renderBowling() {
       { text: `bowling SR ${topBowlerStats.sr.toFixed(1)}` }
     ]);
   }
+  const bowlTop10Totals = top10names.map(name => ({ name, total: BOWLER_STATS[name].wickets }));
   vegaChart('#chart-bowl-top10', {
-    data: { values: dismissalStackData },
-    mark: { type: 'bar', cornerRadiusEnd: 3 },
-    encoding: {
-      y: { field: 'name', type: 'nominal', sort: { field: 'count', op: 'sum', order: 'descending' }, title: '' },
-      x: { field: 'count', type: 'quantitative', title: 'Wickets', stack: 'zero' },
-      color: { field: 'kind', type: 'nominal', title: 'Dismissal Type' },
-      tooltip: [{ field: 'name' }, { field: 'kind', title: 'Type' }, { field: 'count', title: 'Wickets' }]
-    },
+    layer: [
+      {
+        data: { values: dismissalStackData },
+        mark: { type: 'bar', cornerRadiusEnd: 3 },
+        encoding: {
+          y: { field: 'name', type: 'nominal', sort: top10names, title: '' },
+          x: { field: 'count', type: 'quantitative', title: 'Wickets', stack: 'zero' },
+          color: { field: 'kind', type: 'nominal', scale: { domain: ['caught','bowled','lbw','stumped','run out','hit wicket'], range: ['#6366f1','#f43f5e','#f59e0b','#10b981','#06b6d4','#a855f7'] }, title: 'Dismissal' },
+          tooltip: [{ field: 'name' }, { field: 'kind', title: 'Type' }, { field: 'count', title: 'Wickets' }]
+        }
+      },
+      {
+        data: { values: bowlTop10Totals },
+        mark: { type: 'text', align: 'left', dx: 5, fontSize: 11, fontWeight: 'bold' },
+        encoding: {
+          y: { field: 'name', type: 'nominal', sort: top10names },
+          x: { field: 'total', type: 'quantitative' },
+          text: { field: 'total' },
+          color: { value: '#374151' }
+        }
+      }
+    ],
     height: 320
   });
 
@@ -1536,19 +1604,31 @@ function renderBowling() {
     data: { values: haulWide },
     layer: [
       {
-        mark: { type: 'bar', cornerRadiusEnd: 4, opacity: 0.5 },
+        mark: { type: 'bar', cornerRadiusEnd: 4, color: '#6ee7b7' },
         encoding: {
           x: { field: 'threeW', type: 'quantitative' },
-          color: { value: '#10b981' },
           tooltip: [{ field: 'bowler', title: 'Player' }, { field: 'threeWOnly', title: '3-4 Wicket Hauls' }, { field: 'fiveW', title: '5+ Wicket Hauls' }]
         }
       },
       {
-        mark: { type: 'bar', cornerRadiusEnd: 4 },
+        mark: { type: 'bar', cornerRadiusEnd: 4, color: '#f43f5e' },
         encoding: {
           x: { field: 'fiveW', type: 'quantitative' },
-          color: { value: '#f43f5e' },
           tooltip: [{ field: 'bowler', title: 'Player' }, { field: 'threeWOnly', title: '3-4 Wicket Hauls' }, { field: 'fiveW', title: '5+ Wicket Hauls' }]
+        }
+      },
+      {
+        mark: { type: 'text', align: 'left', dx: 5, fontSize: 10, color: '#be123c', fontWeight: 'bold' },
+        encoding: {
+          x: { field: 'fiveW', type: 'quantitative' },
+          text: { field: 'fiveW', type: 'quantitative' }
+        }
+      },
+      {
+        mark: { type: 'text', align: 'right', dx: -5, fontSize: 10, color: '#065f46' },
+        encoding: {
+          x: { field: 'threeW', type: 'quantitative' },
+          text: { field: 'threeWOnly', type: 'quantitative' }
         }
       }
     ],
@@ -1610,23 +1690,35 @@ function renderBowling() {
   });
   vegaChart('#chart-bowl-inn12', {
     data: { values: inn12Data },
-    mark: { type: 'bar', cornerRadiusEnd: 4 },
+    layer: [
+      {
+        mark: { type: 'bar', cornerRadiusEnd: 4 },
+        encoding: {
+          color: {
+            field: 'innings', type: 'nominal',
+            scale: { domain: ['1st Innings', '2nd Innings'], range: ['#6366f1', '#f43f5e'] },
+            title: ''
+          },
+          tooltip: [{ field: 'bowler' }, { field: 'innings' }, { field: 'ecoDisplay', title: 'Economy' }]
+        }
+      },
+      {
+        transform: [{ filter: 'datum.eco >= 0' }],
+        mark: { type: 'text', fontSize: 10, fontWeight: 'bold', align: 'left', dx: 6 },
+        encoding: { text: { field: 'ecoDisplay', type: 'quantitative', format: '.2f' }, color: { value: '#374151' } }
+      },
+      {
+        transform: [{ filter: 'datum.eco < 0' }],
+        mark: { type: 'text', fontSize: 10, fontWeight: 'bold', align: 'right', dx: -6 },
+        encoding: { text: { field: 'ecoDisplay', type: 'quantitative', format: '.2f' }, color: { value: '#374151' } }
+      }
+    ],
     encoding: {
       y: { field: 'bowler', type: 'nominal', sort: top10names, title: '' },
       x: {
         field: 'eco', type: 'quantitative', title: 'Economy ←  1st Innings  |  2nd Innings  →',
         axis: { labelExpr: 'abs(datum.value)', tickCount: 8 }
-      },
-      color: {
-        field: 'innings', type: 'nominal',
-        scale: { domain: ['1st Innings', '2nd Innings'], range: ['#6366f1', '#f43f5e'] },
-        title: ''
-      },
-      tooltip: [
-        { field: 'bowler' },
-        { field: 'innings' },
-        { field: 'ecoDisplay', title: 'Economy' }
-      ]
+      }
     },
     height: 320
   });
@@ -1741,7 +1833,7 @@ function renderBowling() {
     mark: { type: 'arc', innerRadius: 60, outerRadius: 130, cornerRadius: 4 },
     encoding: {
       theta: { field: 'count', type: 'quantitative', stack: true },
-      color: { field: 'kind', type: 'nominal', title: '' },
+      color: { field: 'kind', type: 'nominal', scale: { domain: ['caught','bowled','lbw','stumped','run out','hit wicket'], range: ['#6366f1','#f43f5e','#f59e0b','#10b981','#06b6d4','#a855f7'] }, title: '' },
       tooltip: [{ field: 'kind' }, { field: 'count' }]
     },
     height: 320
@@ -1795,12 +1887,22 @@ function renderTeams() {
   }
   vegaChart('#chart-team-wins', {
     data: { values: winData },
-    mark: { type: 'bar', cornerRadiusEnd: 4 },
+    layer: [
+      {
+        mark: { type: 'bar', cornerRadiusEnd: 4 },
+        encoding: {
+          color: { field: 'team', type: 'nominal', scale: { domain: winData.map(d => d.team), range: winData.map(d => d.color) }, legend: null },
+          tooltip: [{ field: 'team' }, { field: 'wins' }, { field: 'played', title: 'Matches' }, { field: 'winPct', title: 'Win %' }]
+        }
+      },
+      {
+        mark: { type: 'text', align: 'left', dx: 5, fontSize: 11 },
+        encoding: { text: { field: 'wins', type: 'quantitative' }, color: { value: '#374151' } }
+      }
+    ],
     encoding: {
       y: { field: 'team', type: 'nominal', sort: '-x', title: '' },
-      x: { field: 'wins', type: 'quantitative', title: 'Wins' },
-      color: { field: 'team', type: 'nominal', scale: { domain: winData.map(d => d.team), range: winData.map(d => d.color) }, legend: null },
-      tooltip: [{ field: 'team' }, { field: 'wins' }, { field: 'played', title: 'Matches' }, { field: 'winPct', title: 'Win %' }]
+      x: { field: 'wins', type: 'quantitative', title: 'Wins', scale: { nice: true } }
     },
     height: 450
   });
@@ -1832,20 +1934,36 @@ function renderTeams() {
   }
   vegaChart('#chart-team-batfield', {
     data: { values: batFieldData },
-    mark: { type: 'bar', cornerRadiusEnd: 4 },
+    layer: [
+      {
+        mark: { type: 'bar', cornerRadiusEnd: 4 },
+        encoding: {
+          color: {
+            field: 'type', type: 'nominal',
+            scale: { domain: ['Batting First', 'Fielding First'], range: ['#6366f1', '#f43f5e'] },
+            title: ''
+          },
+          tooltip: [{ field: 'team' }, { field: 'type' }, { field: 'display', title: 'Win %' }, { field: 'matches', title: 'Matches' }]
+        }
+      },
+      {
+        transform: [{ filter: 'datum.winPct >= 0' }],
+        mark: { type: 'text', fontSize: 10, fontWeight: 'bold', align: 'left', dx: 6 },
+        encoding: { text: { field: 'display', type: 'quantitative', format: '.1f' }, color: { value: '#374151' } }
+      },
+      {
+        transform: [{ filter: 'datum.winPct < 0' }],
+        mark: { type: 'text', fontSize: 10, fontWeight: 'bold', align: 'right', dx: -6 },
+        encoding: { text: { field: 'display', type: 'quantitative', format: '.1f' }, color: { value: '#374151' } }
+      }
+    ],
     encoding: {
       y: { field: 'team', type: 'nominal', sort: teamOrder, title: '' },
       x: {
         field: 'winPct', type: 'quantitative',
         title: 'Win %  ← Batting First  |  Fielding First →',
         axis: { labelExpr: 'abs(datum.value)', tickCount: 8 }
-      },
-      color: {
-        field: 'type', type: 'nominal',
-        scale: { domain: ['Batting First', 'Fielding First'], range: ['#6366f1', '#f43f5e'] },
-        title: ''
-      },
-      tooltip: [{ field: 'team' }, { field: 'type' }, { field: 'display', title: 'Win %' }, { field: 'matches', title: 'Matches' }]
+      }
     },
     height: 420
   });
@@ -1878,14 +1996,30 @@ function renderTeams() {
   }
   vegaChart('#chart-team-homeaway', {
     data: { values: homeAwayData },
-    mark: { type: 'bar', cornerRadiusEnd: 3 },
+    layer: [
+      {
+        mark: { type: 'bar', cornerRadiusEnd: 3 },
+        encoding: {
+          color: { field: 'type', type: 'nominal', scale: { domain: ['Home', 'Away'], range: ['#10b981', '#f59e0b'] }, title: '' },
+          tooltip: [{ field: 'team' }, { field: 'type' }, { field: 'display', title: 'Win %' }, { field: 'matches', title: 'Matches' }]
+        }
+      },
+      {
+        transform: [{ filter: 'datum.signed >= 0' }],
+        mark: { type: 'text', fontSize: 10, fontWeight: 'bold', align: 'left', dx: 6 },
+        encoding: { text: { field: 'display', type: 'nominal' }, color: { value: '#374151' } }
+      },
+      {
+        transform: [{ filter: 'datum.signed < 0' }],
+        mark: { type: 'text', fontSize: 10, fontWeight: 'bold', align: 'right', dx: -6 },
+        encoding: { text: { field: 'display', type: 'nominal' }, color: { value: '#374151' } }
+      }
+    ],
     encoding: {
       y: { field: 'team', type: 'nominal', sort: { field: 'winPct', op: 'max', order: 'descending' }, title: '', axis: { labelFontSize: 12 } },
       x: { field: 'signed', type: 'quantitative', title: '← Away    Home →',
-           scale: { domain: [-haMaxVal - 5, haMaxVal + 5] },
-           axis: { labelExpr: 'abs(datum.value)', tickCount: 8 } },
-      color: { field: 'type', type: 'nominal', scale: { domain: ['Home', 'Away'], range: ['#10b981', '#f59e0b'] }, title: '' },
-      tooltip: [{ field: 'team' }, { field: 'type' }, { field: 'display', title: 'Win %' }, { field: 'matches', title: 'Matches' }]
+           scale: { domain: [-haMaxVal - 10, haMaxVal + 10] },
+           axis: { labelExpr: 'abs(datum.value)', tickCount: 8 } }
     },
     height: 420
   });
@@ -1963,12 +2097,22 @@ function renderTeams() {
   }
   vegaChart('#chart-team-playoff', {
     data: { values: playoffData },
-    mark: { type: 'bar', cornerRadiusEnd: 4 },
+    layer: [
+      {
+        mark: { type: 'bar', cornerRadiusEnd: 4 },
+        encoding: {
+          color: { field: 'team', type: 'nominal', scale: { domain: playoffData.map(d => d.team), range: playoffData.map(d => d.color) }, legend: null },
+          tooltip: [{ field: 'team' }, { field: 'qualPct', title: 'Qual. Rate %' }, { field: 'qualified', title: 'Times Qualified' }, { field: 'seasons', title: 'Seasons Played' }]
+        }
+      },
+      {
+        mark: { type: 'text', align: 'left', dx: 5, fontSize: 11, fontWeight: 'bold' },
+        encoding: { text: { field: 'qualPct', type: 'quantitative', format: '.1f' }, color: { value: '#374151' } }
+      }
+    ],
     encoding: {
       y: { field: 'team', type: 'nominal', sort: '-x', title: '' },
-      x: { field: 'qualPct', type: 'quantitative', title: 'Playoff Qualification Rate (%)', scale: { domain: [0, 100] } },
-      color: { field: 'team', type: 'nominal', scale: { domain: playoffData.map(d => d.team), range: playoffData.map(d => d.color) }, legend: null },
-      tooltip: [{ field: 'team' }, { field: 'qualPct', title: 'Qual. Rate %' }, { field: 'qualified', title: 'Times Qualified' }, { field: 'seasons', title: 'Seasons Played' }]
+      x: { field: 'qualPct', type: 'quantitative', title: 'Playoff Qualification Rate (%)', scale: { domain: [0, 110] } }
     },
     height: 360
   });
@@ -2000,14 +2144,30 @@ function renderTeams() {
   }
   vegaChart('#chart-team-knockout', {
     data: { values: knockoutData },
-    mark: { type: 'bar', cornerRadiusEnd: 3 },
+    layer: [
+      {
+        mark: { type: 'bar', cornerRadiusEnd: 3 },
+        encoding: {
+          color: { field: 'stage', type: 'nominal', scale: { domain: ['Group Stage', 'Knockouts'], range: ['#6366f1', '#f43f5e'] }, title: '' },
+          tooltip: [{ field: 'team' }, { field: 'stage' }, { field: 'display', title: 'Win %' }, { field: 'matches', title: 'Matches' }]
+        }
+      },
+      {
+        transform: [{ filter: 'datum.signed >= 0' }],
+        mark: { type: 'text', fontSize: 10, fontWeight: 'bold', align: 'left', dx: 6 },
+        encoding: { text: { field: 'display', type: 'nominal' }, color: { value: '#374151' } }
+      },
+      {
+        transform: [{ filter: 'datum.signed < 0' }],
+        mark: { type: 'text', fontSize: 10, fontWeight: 'bold', align: 'right', dx: -6 },
+        encoding: { text: { field: 'display', type: 'nominal' }, color: { value: '#374151' } }
+      }
+    ],
     encoding: {
       y: { field: 'team', type: 'nominal', sort: { field: 'winPct', op: 'max', order: 'descending' }, title: '', axis: { labelFontSize: 12 } },
       x: { field: 'signed', type: 'quantitative', title: '← Knockouts    Group Stage →',
-           scale: { domain: [-koMaxVal - 5, koMaxVal + 5] },
-           axis: { labelExpr: 'abs(datum.value)', tickCount: 8 } },
-      color: { field: 'stage', type: 'nominal', scale: { domain: ['Group Stage', 'Knockouts'], range: ['#6366f1', '#f43f5e'] }, title: '' },
-      tooltip: [{ field: 'team' }, { field: 'stage' }, { field: 'display', title: 'Win %' }, { field: 'matches', title: 'Matches' }]
+           scale: { domain: [-koMaxVal - 10, koMaxVal + 10] },
+           axis: { labelExpr: 'abs(datum.value)', tickCount: 8 } }
     },
     height: 360
   });
@@ -2043,7 +2203,11 @@ function renderInsights() {
   }
   vegaChart('#chart-dyn-runrate', {
     data: { values: overData },
-    mark: { type: 'area', color: '#6366f1', opacity: 0.6, line: { color: '#6366f1', strokeWidth: 2 } },
+    layer: [
+      { mark: { type: 'area', color: '#6366f1', opacity: 0.15 } },
+      { mark: { type: 'line', color: '#6366f1', strokeWidth: 2.5 } },
+      { mark: { type: 'point', color: '#6366f1', filled: true, size: 60 } }
+    ],
     encoding: {
       x:       { field: 'over', type: 'quantitative', title: 'Over', scale: { domain: [1, 20] } },
       y:       { field: 'avgRuns', type: 'quantitative', title: 'Avg Runs per Over' },
@@ -2070,11 +2234,19 @@ function renderInsights() {
   }
   vegaChart('#chart-dyn-wickets', {
     data: { values: wicketByOver },
-    mark: { type: 'bar', cornerRadiusTopLeft: 3, cornerRadiusTopRight: 3, color: '#d4213d' },
+    layer: [
+      {
+        mark: { type: 'bar', cornerRadiusTopLeft: 3, cornerRadiusTopRight: 3, color: '#d4213d' },
+        encoding: { tooltip: [{ field: 'over' }, { field: 'wickets' }] }
+      },
+      {
+        mark: { type: 'text', dy: -6, fontSize: 10, fontWeight: 'bold', color: '#374151' },
+        encoding: { text: { field: 'wickets', type: 'quantitative' } }
+      }
+    ],
     encoding: {
       x: { field: 'over', type: 'ordinal', title: 'Over' },
-      y: { field: 'wickets', type: 'quantitative', title: 'Total Wickets' },
-      tooltip: [{ field: 'over' }, { field: 'wickets' }]
+      y: { field: 'wickets', type: 'quantitative', title: 'Total Wickets' }
     },
     height: 280
   });
@@ -2109,6 +2281,14 @@ function renderInsights() {
         }
       },
       {
+        mark: { type: 'text', dy: -6, fontSize: 10, fontWeight: 'bold', color: '#374151' },
+        encoding: {
+          x: { field: 'range', type: 'nominal' },
+          y: { field: 'winPct', type: 'quantitative' },
+          text: { field: 'winPct', type: 'quantitative', format: '.1f' }
+        }
+      },
+      {
         mark: { type: 'rule', color: '#d4213d', strokeDash: [5, 3], strokeWidth: 2 },
         encoding: { y: { datum: 50 } }
       }
@@ -2138,11 +2318,19 @@ function renderInsights() {
   }
   vegaChart('#chart-venue-scores', {
     data: { values: venueScoreData },
-    mark: { type: 'bar', cornerRadiusEnd: 4, color: '#6366f1' },
+    layer: [
+      {
+        mark: { type: 'bar', cornerRadiusEnd: 4, color: '#6366f1' },
+        encoding: { tooltip: [{ field: 'venue' }, { field: 'avg', title: 'Avg Score' }] }
+      },
+      {
+        mark: { type: 'text', align: 'left', dx: 5, fontSize: 11 },
+        encoding: { text: { field: 'avg', type: 'quantitative' } }
+      }
+    ],
     encoding: {
-      y:       { field: 'venue', type: 'nominal', sort: '-x', title: '' },
-      x:       { field: 'avg', type: 'quantitative', title: 'Avg Team Score' },
-      tooltip: [{ field: 'venue' }, { field: 'avg', title: 'Avg Score' }]
+      y: { field: 'venue', type: 'nominal', sort: '-x', title: '' },
+      x: { field: 'avg', type: 'quantitative', title: 'Avg Team Score' }
     },
     height: 350
   });
@@ -2166,12 +2354,22 @@ function renderInsights() {
   }
   vegaChart('#chart-venue-bat1st', {
     data: { values: bat1stData },
-    mark: { type: 'bar', cornerRadiusEnd: 4 },
+    layer: [
+      {
+        mark: { type: 'bar', cornerRadiusEnd: 4 },
+        encoding: {
+          color: { field: 'matches', type: 'quantitative', scale: { scheme: 'tealblues' }, title: 'Matches' },
+          tooltip: [{ field: 'venue' }, { field: 'winPct', title: 'Win %' }, { field: 'matches', title: 'Matches' }]
+        }
+      },
+      {
+        mark: { type: 'text', align: 'left', dx: 5, fontSize: 11 },
+        encoding: { text: { field: 'winPct', type: 'quantitative', format: '.1f' } }
+      }
+    ],
     encoding: {
       y: { field: 'venue', type: 'nominal', sort: '-x', title: '' },
-      x: { field: 'winPct', type: 'quantitative', title: 'Win % (Batting First)', scale: { domain: [0, 100] } },
-      color: { field: 'matches', type: 'quantitative', scale: { scheme: 'tealblues' }, title: 'Matches' },
-      tooltip: [{ field: 'venue' }, { field: 'winPct', title: 'Win %' }, { field: 'matches', title: 'Matches' }]
+      x: { field: 'winPct', type: 'quantitative', title: 'Win % (Batting First)', scale: { domain: [0, 100] } }
     },
     height: 350
   });
@@ -2407,7 +2605,7 @@ function showPlayerProfile(name) {
   const bowl = BOWLER_STATS[name];
   if (!bat && !bowl) { container.innerHTML = '<div class="empty-state"><p>No data found for this player.</p></div>'; return; }
 
-  const isBatter     = !!(bat  && bat.innings >= 3 && bat.avg >= 10);
+  const isBatter     = !!(bat  && bat.innings >= 10 && bat.totalRuns >= 200);
   const isBowler     = !!(bowl && bowl.matches >= 3 && (bowl.wickets / bowl.matches) >= 0.5);
   const isAllrounder = isBatter && isBowler;
   const role      = isAllrounder ? 'All-Rounder' : isBatter ? 'Batter' : 'Bowler';
@@ -2518,12 +2716,17 @@ function showPlayerProfile(name) {
     }));
     vegaChart('#player-bat-phase', {
       data: { values: batPhase },
+      transform: [
+        { joinaggregate: [{ op: 'sum', field: 'runs', as: 'total' }] },
+        { calculate: "format(datum.runs / datum.total * 100, '.1f') + '%'", as: 'pct' }
+      ],
       mark: { type: 'arc', innerRadius: 50, outerRadius: 110, cornerRadius: 4 },
       encoding: {
-        theta: { field: 'runs', type: 'quantitative' },
+        theta: { field: 'runs', type: 'quantitative', stack: true },
         color: { field: 'phase', type: 'nominal', scale: { domain: ['Powerplay','Middle','Death'], range: ['#6366f1','#f59e0b','#f43f5e'] }, title: '' },
-        tooltip: [{ field: 'phase' }, { field: 'runs' }]
-      }, height: 240
+        tooltip: [{ field: 'phase' }, { field: 'runs' }, { field: 'pct', title: '%' }]
+      },
+      height: 260
     });
 
     const oppBat = [...d3.group(batBalls, d => d.bowling_team).entries()].map(([team, b]) => {
@@ -2532,12 +2735,21 @@ function showPlayerProfile(name) {
     }).sort((a,b) => b.avgRuns - a.avgRuns);
     vegaChart('#player-vs-bat', {
       data: { values: oppBat },
-      mark: { type: 'bar', cornerRadiusEnd: 4, color: '#6366f1' },
+      layer: [
+        {
+          mark: { type: 'bar', cornerRadiusEnd: 4, color: '#6366f1' },
+          encoding: { tooltip: [{ field: 'team', title: 'vs' }, { field: 'avgRuns', title: 'Avg Runs' }, { field: 'inn', title: 'Innings' }] }
+        },
+        {
+          mark: { type: 'text', align: 'left', dx: 4, fontSize: 10 },
+          encoding: { text: { field: 'avgRuns', type: 'quantitative', format: '.1f' }, color: { value: '#374151' } }
+        }
+      ],
       encoding: {
         y: { field: 'team', type: 'nominal', sort: '-x', title: '' },
-        x: { field: 'avgRuns', type: 'quantitative', title: 'Avg Runs per Innings' },
-        tooltip: [{ field: 'team', title: 'vs' }, { field: 'avgRuns', title: 'Avg Runs' }, { field: 'inn', title: 'Innings' }]
-      }, height: Math.max(180, oppBat.length * 26)
+        x: { field: 'avgRuns', type: 'quantitative', title: 'Avg Runs per Innings', scale: { nice: true } }
+      },
+      height: Math.max(180, oppBat.length * 26)
     });
   }
 
@@ -2562,12 +2774,17 @@ function showPlayerProfile(name) {
     }));
     vegaChart('#player-bowl-phase', {
       data: { values: bowlPhase },
+      transform: [
+        { joinaggregate: [{ op: 'sum', field: 'wickets', as: 'total' }] },
+        { calculate: "format(datum.wickets / datum.total * 100, '.1f') + '%'", as: 'pct' }
+      ],
       mark: { type: 'arc', innerRadius: 50, outerRadius: 110, cornerRadius: 4 },
       encoding: {
-        theta: { field: 'wickets', type: 'quantitative' },
+        theta: { field: 'wickets', type: 'quantitative', stack: true },
         color: { field: 'phase', type: 'nominal', scale: { domain: ['Powerplay','Middle','Death'], range: ['#6366f1','#f59e0b','#f43f5e'] }, title: '' },
-        tooltip: [{ field: 'phase' }, { field: 'wickets' }]
-      }, height: 240
+        tooltip: [{ field: 'phase' }, { field: 'wickets' }, { field: 'pct', title: '%' }]
+      },
+      height: 260
     });
 
     const oppBowl = [...d3.group(bowlBalls, d => d.batting_team).entries()].map(([team, b]) => {
@@ -2577,12 +2794,21 @@ function showPlayerProfile(name) {
     }).sort((a,b) => b.wktsPerMatch - a.wktsPerMatch);
     vegaChart('#player-vs-bowl', {
       data: { values: oppBowl },
-      mark: { type: 'bar', cornerRadiusEnd: 4, color: '#f43f5e' },
+      layer: [
+        {
+          mark: { type: 'bar', cornerRadiusEnd: 4, color: '#f43f5e' },
+          encoding: { tooltip: [{ field: 'team', title: 'vs' }, { field: 'wktsPerMatch', title: 'Wkts/Match' }, { field: 'wickets', title: 'Total Wkts' }, { field: 'matches', title: 'Matches' }] }
+        },
+        {
+          mark: { type: 'text', align: 'left', dx: 4, fontSize: 10 },
+          encoding: { text: { field: 'wktsPerMatch', type: 'quantitative', format: '.2f' }, color: { value: '#374151' } }
+        }
+      ],
       encoding: {
         y: { field: 'team', type: 'nominal', sort: '-x', title: '' },
-        x: { field: 'wktsPerMatch', type: 'quantitative', title: 'Wickets per Match' },
-        tooltip: [{ field: 'team', title: 'vs' }, { field: 'wktsPerMatch', title: 'Wkts/Match' }, { field: 'wickets', title: 'Total Wkts' }, { field: 'matches', title: 'Matches' }]
-      }, height: Math.max(180, oppBowl.length * 26)
+        x: { field: 'wktsPerMatch', type: 'quantitative', title: 'Wickets per Match', scale: { nice: true } }
+      },
+      height: Math.max(180, oppBowl.length * 26)
     });
   }
 
