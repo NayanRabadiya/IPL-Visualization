@@ -1351,12 +1351,11 @@ function renderBatting() {
   }
   vegaChart('#chart-bat-scatter', {
     data: { values: scatterData },
-    mark: { type: 'circle', opacity: 0.7 },
+    mark: { type: 'point', filled: false, opacity: 0.85, strokeWidth: 1.5 },
     encoding: {
       x: { field: 'avg', type: 'quantitative', title: 'Batting Average', scale: { zero: false } },
       y: { field: 'sr', type: 'quantitative', title: 'Strike Rate', scale: { zero: false } },
-      size: { field: 'runs', type: 'quantitative', title: 'Total Runs', scale: { range: [30, 500] } },
-      color: { field: 'sr', type: 'quantitative', scale: { scheme: 'blues' }, legend: null },
+      size: { field: 'runs', type: 'quantitative', title: 'Total Runs', scale: { range: [80, 1200] } },
       tooltip: [{ field: 'name' }, { field: 'avg' }, { field: 'sr' }, { field: 'runs', format: ',' }, { field: 'innings' }]
     },
     height: 380
@@ -1650,12 +1649,11 @@ function renderBowling() {
   }
   vegaChart('#chart-bowl-scatter', {
     data: { values: scatterData },
-    mark: { type: 'circle', opacity: 0.72 },
+    mark: { type: 'point', filled: false, opacity: 0.85, strokeWidth: 1.5 },
     encoding: {
       x: { field: 'economy', type: 'quantitative', title: 'Economy Rate (runs/over)', scale: { zero: false } },
       y: { field: 'avg',     type: 'quantitative', title: 'Bowling Average (runs/wicket)', scale: { zero: false } },
-      size: { field: 'wickets', type: 'quantitative', title: 'Wickets', scale: { range: [30, 500] } },
-      color: { field: 'sr', type: 'quantitative', scale: { scheme: 'orangered', reverse: true }, title: 'SR', legend: null },
+      size: { field: 'wickets', type: 'quantitative', title: 'Wickets', scale: { range: [80, 1200] } },
       tooltip: [{ field: 'name' }, { field: 'economy', title: 'Economy' }, { field: 'avg', title: 'Bowling Avg' }, { field: 'sr', title: 'Strike Rate' }, { field: 'wickets' }]
     },
     height: 380
