@@ -267,12 +267,6 @@ h1,h2,h3,h4 { font-family: 'DM Serif Display', serif; color: var(--navy); }
   max-width:250px; line-height:1.5;
 }
 
-/* Footer */
-.footer {
-  text-align:center; padding:24px; color:var(--text-light);
-  font-size:0.82rem; border-top:1px solid var(--border); background:#fff;
-}
-.footer strong { color:var(--navy); }
 
 /* ── Season Filter Bar ── */
 /* Season filter — inline inside tab-nav (dark) */
@@ -563,10 +557,7 @@ h1,h2,h3,h4 { font-family: 'DM Serif Display', serif; color: var(--navy); }
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="footer">
-    <strong>IPL Pulse</strong> · 2008–2025
-  </footer>
+
 </div>
 
 <script>
@@ -2329,7 +2320,7 @@ function renderInsights() {
       }
     ],
     encoding: {
-      y: { field: 'venue', type: 'nominal', sort: '-x', title: '' },
+      y: { field: 'venue', type: 'nominal', sort: '-x', title: '', axis: { labelLimit: 260, minExtent: 220 } },
       x: { field: 'avg', type: 'quantitative', title: 'Avg Team Score' }
     },
     height: 350
@@ -2368,7 +2359,7 @@ function renderInsights() {
       }
     ],
     encoding: {
-      y: { field: 'venue', type: 'nominal', sort: '-x', title: '' },
+      y: { field: 'venue', type: 'nominal', sort: '-x', title: '', axis: { labelLimit: 260, minExtent: 220 } },
       x: { field: 'winPct', type: 'quantitative', title: 'Win % (Batting First)', scale: { domain: [0, 100] } }
     },
     height: 350
